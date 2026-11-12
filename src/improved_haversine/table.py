@@ -6,6 +6,7 @@ import json
 from dataclasses import dataclass
 from functools import cache
 from importlib import resources
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -25,12 +26,16 @@ class Estimate:
       cell      measured for the grid cell of at least one of the points
       region    the region-wide factor for that distance band
       fallback  neither point is inside the region, a fixed factor was used
+
+    ``extrapolated`` is true when the trip is longer than anything the factors
+    were measured on. The factor of the longest band is used, and it is a guess.
     """
 
     distance_km: float
     haversine_km: float
     factor: float
     source: str
+    extrapolated: bool = False
 
 
 class FactorTable:
@@ -42,8 +47,6 @@ class FactorTable:
         for field in ("region", "cell_size_deg", "bands_km", "bbox", "default", "cells"):
             if field not in data:
                 raise ValueError(f"factor table has no {field!r}")
-        if len(data["default"]) != len(data["bands_km"]):
-            raise ValueError("'default' must have one factor per distance band")
 
         self.region: str = data["region"]
         self.cell_size_deg: float = float(data["cell_size_deg"])
@@ -51,9 +54,28 @@ class FactorTable:
         self.bbox: tuple[float, float, float, float] = tuple(data["bbox"])  # west, south, east, north
         self.default: list[float | None] = list(data["default"])
         self.cells: dict[str, list[float | None]] = data["cells"]
+        self._validate()
         self.metadata: dict[str, Any] = {
             key: value for key, value in data.items() if key not in ("cells", "samples")
         }
+
+    def _validate(self) -> None:
+        """Reject a table that would give wrong answers instead of failing later, or never."""
+        if not self.cell_size_deg > 0:
+            raise ValueError("'cell_size_deg' must be greater than zero")
+        increasing = all(b > a for a, b in pairwise(self.bands_km))
+        if not self.bands_km or self.bands_km[0] <= 0 or not increasing:
+            raise ValueError("'bands_km' must be a non-empty list of increasing distances")
+        if len(self.bbox) != 4 or not (self.bbox[0] < self.bbox[2] and self.bbox[1] < self.bbox[3]):
+            raise ValueError("'bbox' must be [west, south, east, north]")
+        if len(self.default) != len(self.bands_km):
+            raise ValueError("'default' must have one factor per distance band")
+        for key, factors in [("default", self.default), *self.cells.items()]:
+            if len(factors) != len(self.bands_km):
+                raise ValueError(f"cell {key!r} must have one factor per distance band")
+            # A road is never shorter than the straight line.
+            if any(factor is not None and not factor >= 1 for factor in factors):
+                raise ValueError(f"factors of {key!r} must be 1 or more")
 
     @classmethod
     def load(cls, region: str) -> FactorTable:
@@ -100,8 +122,14 @@ class FactorTable:
 
         The result is the same in both directions.
         """
+        for lat, lon in ((lat1, lon1), (lat2, lon2)):
+            # The comparisons are false for NaN, so this rejects it too.
+            if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                raise ValueError(f"not a coordinate: latitude {lat!r}, longitude {lon!r}")
+
         straight = haversine_km(lat1, lon1, lat2, lon2)
         band = band_index(straight, self.bands_km)
+        extrapolated = straight > self.bands_km[-1]
 
         measured = [
             factor
@@ -115,7 +143,13 @@ class FactorTable:
         else:
             factor, source = fallback_factor, "fallback"
 
-        return Estimate(distance_km=straight * factor, haversine_km=straight, factor=factor, source=source)
+        return Estimate(
+            distance_km=straight * factor,
+            haversine_km=straight,
+            factor=factor,
+            source=source,
+            extrapolated=extrapolated,
+        )
 
 
 def available_regions() -> list[str]:

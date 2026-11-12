@@ -47,13 +47,18 @@ By length of trip, median error:
 
 What the numbers say:
 
-- **Distance matters most.** The factor falls from 1.64 for trips under
-  5 km to 1.27 for trips over 60 km. A constant can only be right for one
-  of them. 1.25 is right for long trips and 25% off for short ones.
+- **Distance matters most, and mostly on longer trips.** The factor falls from
+  1.64 for trips under 5 km to 1.27 for trips over 60 km. A constant can only
+  be right for one of them. Beyond 60 km a factor per band cuts the error of a
+  single measured factor from 13.1% to 5.2%. Under 20 km the single factor
+  does as well.
+- **1.25 is a long-distance number.** It is right for long trips and 25% off
+  for short ones.
 - **Location adds a little on top.** Going from one factor per band to one per
   cell and band takes the median error from 11.5% to 11.2%. The cells do
-  differ: for short trips their factors range from 1.41 to 1.94. In a region
-  the size of Connecticut the gain from that is small.
+  differ: among cells with 200 or more sampled trips, the factor for short
+  trips ranges from 1.50 to 1.78. In a region the size of Connecticut the gain
+  from that is small.
 - **Short trips stay noisy.** Under 5 km the answer depends on which side of a
   highway or a river the two points are, and no factor knows that.
 
@@ -82,10 +87,11 @@ road_distance_km(41.0534, -73.5387, 41.0262, -73.6282, region="us-ct")  # 12.1
 table = FactorTable.load("us-ct")
 estimate = table.estimate(41.0534, -73.5387, 41.0262, -73.6282)
 
-estimate.haversine_km  # 8.1    straight line
-estimate.factor  # 1.495  measured for these cells and this distance
-estimate.distance_km  # 12.1   estimated road distance
+estimate.haversine_km  # 8.1, the straight line
+estimate.factor  # 1.495, measured for these cells and this distance
+estimate.distance_km  # 12.1, the estimated road distance
 estimate.source  # "cell"
+estimate.extrapolated  # False
 ```
 
 `source` says how the factor was found:
@@ -95,6 +101,11 @@ estimate.source  # "cell"
 | `cell` | Measured for the grid cell of at least one of the two points. |
 | `region` | The cell has too few measurements for this distance, so the regional factor for the distance band is used. |
 | `fallback` | Neither point is inside the region. A fixed factor is used, 1.25 unless you pass another. |
+
+`extrapolated` is true when the trip is longer than the longest distance band,
+150 km for this region. The factor of the longest band is still used, because
+it is the closest thing measured, but nothing stands behind it at that
+distance.
 
 The estimate is the same in both directions, and never below the straight
 line. The library has no dependencies.
@@ -107,12 +118,15 @@ this library:
 
 1. Compute the straight-line distance with the Haversine formula.
 2. Find the distance band: the first entry of `bands_km` that the distance does
-   not exceed.
+   not exceed. A distance beyond the last entry uses the last band.
 3. Find the cell of each point. The key is
    `floor(lat / cell_size_deg):floor(lon / cell_size_deg)`.
 4. Take `cells[key][band]` for both points and average the values that are not
    null. If both are null, use `default[band]`.
 5. Multiply.
+
+The table applies when at least one of the points is inside `bbox`
+(`[west, south, east, north]`).
 
 ## How the factors are computed
 

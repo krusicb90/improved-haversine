@@ -173,6 +173,12 @@ def test_a_table_cannot_be_built_from_nothing():
         build_table([], "fake", BBOX, CELL, BANDS, min_samples=20)
 
 
+@pytest.mark.parametrize("bands", [[], [20, 5, 60], [0, 5], [5, 5]])
+def test_bands_must_increase(trips, bands):
+    with pytest.raises(ValueError, match="increasing"):
+        build_table(trips, "fake", BBOX, CELL, bands, min_samples=20)
+
+
 def test_a_trip_counts_for_both_of_its_ends():
     west_to_east = Trip(41.6, -72.9, 41.6, -72.1, straight_km=66.5, road_km=80.0)
 
@@ -206,6 +212,7 @@ def test_evaluation_reports_every_band_that_has_trips(table):
     bands = evaluate(held_out, table)["median_error_pct_by_band"]
 
     assert [band["to_km"] for band in bands] == BANDS
+    assert [band["from_km"] for band in bands] == [MIN_TRIP_KM, 5, 20]
     assert all(band["trips"] > 0 for band in bands)
 
 
