@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Road distance estimates from coordinates alone: regional correction factors for the Haversine formula, computed from OpenStreetMap."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 authors = [{ name = "Bruno Krušić" }]
 keywords = ["haversine", "distance", "geospatial", "openstreetmap", "circuity"]
 classifiers = [
