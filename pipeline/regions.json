@@ -1,0 +1,7 @@
+{
+  "us-ct": {
+    "name": "Connecticut, USA",
+    "geofabrik": "north-america/us/connecticut",
+    "bbox": [-73.75, 40.95, -71.75, 42.10]
+  }
+}

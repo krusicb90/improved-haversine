@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+*.egg-info/
+
+# Pipeline working files
+/work/
+/out/
+*.osm.pbf
+*.osrm*
+
+.idea/
+.vscode/
+.DS_Store
