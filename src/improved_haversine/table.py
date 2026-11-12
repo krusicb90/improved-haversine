@@ -77,9 +77,12 @@ class FactorTable:
         factors = self.cells.get(cell_key(lat, lon, self.cell_size_deg))
         return factors[band] if factors else None
 
-    def _region_factor(self, band: int) -> float | None:
-        # A band without enough samples borrows from the nearest shorter band.
-        # Detours shrink with distance, so this overestimates slightly.
+    def region_factor(self, band: int) -> float | None:
+        """The region-wide factor of a distance band.
+
+        A band without enough samples borrows from the nearest shorter band.
+        Detours shrink with distance, so this overestimates slightly.
+        """
         for index in range(band, -1, -1):
             if self.default[index] is not None:
                 return self.default[index]
@@ -107,8 +110,8 @@ class FactorTable:
         ]
         if measured:
             factor, source = sum(measured) / len(measured), "cell"
-        elif (self.covers(lat1, lon1) or self.covers(lat2, lon2)) and self._region_factor(band) is not None:
-            factor, source = self._region_factor(band), "region"
+        elif (self.covers(lat1, lon1) or self.covers(lat2, lon2)) and self.region_factor(band) is not None:
+            factor, source = self.region_factor(band), "region"
         else:
             factor, source = fallback_factor, "fallback"
 

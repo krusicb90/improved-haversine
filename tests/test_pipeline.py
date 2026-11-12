@@ -195,6 +195,7 @@ def test_the_improved_estimate_beats_every_single_factor(table):
     assert mean["improved"] < mean["single_factor"]
     assert mean["improved"] < mean["fixed"]
     assert mean["improved"] < mean["haversine"]
+    assert set(result["methods"]) == {"haversine", "fixed", "single_factor", "band_factor", "improved"}
     assert result["trips"] == len(held_out)
     assert sum(result["improved_factor_source"].values()) == len(held_out)
 
