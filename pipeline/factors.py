@@ -7,6 +7,7 @@ import statistics
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from typing import Any
 
 from improved_haversine.core import band_index, cell_key, haversine_km
@@ -118,6 +119,8 @@ def build_table(
     """
     if not trips:
         raise ValueError("no trips were sampled, so there is nothing to build a table from")
+    if not bands_km or bands_km[0] <= 0 or any(b <= a for a, b in pairwise(bands_km)):
+        raise ValueError("bands_km must be a non-empty list of increasing distances")
 
     by_band: dict[int, list[float]] = defaultdict(list)
     by_cell: dict[str, dict[int, list[float]]] = defaultdict(lambda: defaultdict(list))

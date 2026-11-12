@@ -138,3 +138,48 @@ def test_default_must_match_the_bands():
 def test_an_unknown_region_names_the_available_ones():
     with pytest.raises(ValueError, match="no factors for region"):
         FactorTable.load("atlantis")
+
+
+# --- inputs the library must refuse ---------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"bands_km": [50, 10, 200]}, "increasing"),
+        ({"bands_km": []}, "increasing"),
+        ({"cell_size_deg": 0}, "cell_size_deg"),
+        ({"bbox": [-73.75, 41.0, -71.75]}, "bbox"),
+        ({"bbox": [-71.75, 41.0, -73.75, 42.0]}, "bbox"),
+        ({"cells": {"166:-291": [1.5]}}, "one factor per distance band"),
+        ({"cells": {"166:-291": [0.9, 1.3, None]}}, "1 or more"),
+        ({"default": [1.4, -1.0, None]}, "1 or more"),
+    ],
+)
+def test_a_table_that_would_give_wrong_answers_is_rejected(change, message):
+    with pytest.raises(ValueError, match=message):
+        FactorTable({**TABLE, **change})
+
+
+@pytest.mark.parametrize(
+    "point",
+    [(91.0, -72.7), (41.6, -181.0), (float("nan"), -72.7), (41.6, float("inf"))],
+)
+def test_values_that_are_not_coordinates_are_rejected(table, point):
+    with pytest.raises(ValueError, match="not a coordinate"):
+        table.estimate(*point, *IN_CELL_A)
+    with pytest.raises(ValueError, match="not a coordinate"):
+        table.estimate(*IN_CELL_A, *point)
+
+
+def test_a_trip_inside_the_measured_range_is_not_extrapolated(table):
+    assert table.estimate(*IN_CELL_A, *IN_CELL_B).extrapolated is False
+
+
+def test_a_trip_longer_than_anything_measured_is_marked(table):
+    # About 4,000 km. The longest band ends at 200 km.
+    estimate = table.estimate(*IN_CELL_A, 34.05, -118.24)
+
+    assert estimate.haversine_km > 200
+    assert estimate.extrapolated is True
+    assert estimate.factor == 1.30

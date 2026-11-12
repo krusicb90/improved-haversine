@@ -8,7 +8,7 @@ from typing import Any
 
 from improved_haversine.core import band_index
 from improved_haversine.table import FactorTable
-from pipeline.factors import Trip
+from pipeline.factors import MIN_TRIP_KM, Trip
 
 FIXED_FACTOR = 1.25
 
@@ -51,7 +51,7 @@ def evaluate(trips: Sequence[Trip], table: FactorTable) -> dict[str, Any]:
     }
 
     by_band: list[dict[str, Any]] = []
-    lower = 0.0
+    lower = MIN_TRIP_KM
     for index, upper in enumerate(table.bands_km):
         in_band = [trip for trip in trips if band_index(trip.straight_km, table.bands_km) == index]
         if in_band:
