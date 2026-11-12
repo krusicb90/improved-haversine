@@ -2,6 +2,8 @@
 
 Road distance estimates from coordinates alone.
 
+![A straight dashed line between two map pins, and the longer road route that winds around a river and a hill](docs/images/banner.jpg)
+
 The Haversine formula gives the distance in a straight line. It is free,
 instant and needs no network call. It is also short of the real road distance
 by about a third. A routing API gives the real distance and bills for every
@@ -20,6 +22,8 @@ gets expensive fast. Sorting by Haversine is free but ranks a store across a
 river above one down the road. The usual patch is to multiply by a constant
 such as 1.25. This project measures what that constant should be, and shows
 that it should not be a constant.
+
+![A house and a shop on opposite banks of a river: the straight line crosses the water, the road goes around over the bridge](docs/images/store-locator.jpg)
 
 ## Results
 
@@ -129,6 +133,11 @@ The table applies when at least one of the points is inside `bbox`
 (`[west, south, east, north]`).
 
 ## How the factors are computed
+
+![A map divided into a grid of square cells, each tinted in a different shade](docs/images/grid.jpg)
+
+*Illustration of the idea, not measured data: the region is cut into a grid and
+every cell gets its own factors.*
 
 1. The OpenStreetMap extract of the region is downloaded from Geofabrik and
    turned into a routing graph with OSRM, using the car profile.
