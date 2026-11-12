@@ -32,7 +32,7 @@
  },
  "median_error_pct_by_band": [
   {
-   "from_km": 0.0,
+   "from_km": 0.5,
    "to_km": 5.0,
    "trips": 3043,
    "haversine": 40.08,
