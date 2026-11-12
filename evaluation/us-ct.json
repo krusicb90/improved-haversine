@@ -1,0 +1,78 @@
+{
+ "region": "us-ct",
+ "trips": 8029,
+ "fixed_factor": 1.25,
+ "single_factor": 1.435,
+ "methods": {
+  "haversine": {
+   "median_error_pct": 30.67,
+   "p90_error_pct": 54.56,
+   "mean_error_pct": 33.52
+  },
+  "fixed": {
+   "median_error_pct": 14.0,
+   "p90_error_pct": 43.2,
+   "mean_error_pct": 18.96
+  },
+  "single_factor": {
+   "median_error_pct": 12.83,
+   "p90_error_pct": 36.62,
+   "mean_error_pct": 16.77
+  },
+  "band_factor": {
+   "median_error_pct": 11.46,
+   "p90_error_pct": 36.65,
+   "mean_error_pct": 15.93
+  },
+  "improved": {
+   "median_error_pct": 11.24,
+   "p90_error_pct": 36.77,
+   "mean_error_pct": 15.73
+  }
+ },
+ "median_error_pct_by_band": [
+  {
+   "from_km": 0.0,
+   "to_km": 5.0,
+   "trips": 3043,
+   "haversine": 40.08,
+   "fixed": 25.1,
+   "single_factor": 19.8,
+   "band_factor": 21.03,
+   "improved": 20.42
+  },
+  {
+   "from_km": 5.0,
+   "to_km": 20.0,
+   "trips": 2677,
+   "haversine": 31.31,
+   "fixed": 14.52,
+   "single_factor": 10.95,
+   "band_factor": 11.3,
+   "improved": 11.05
+  },
+  {
+   "from_km": 20.0,
+   "to_km": 60.0,
+   "trips": 1847,
+   "haversine": 24.87,
+   "fixed": 7.32,
+   "single_factor": 9.83,
+   "band_factor": 6.59,
+   "improved": 6.37
+  },
+  {
+   "from_km": 60.0,
+   "to_km": 150.0,
+   "trips": 462,
+   "haversine": 21.23,
+   "fixed": 5.1,
+   "single_factor": 13.05,
+   "band_factor": 5.16,
+   "improved": 4.82
+  }
+ ],
+ "improved_factor_source": {
+  "cell": 8029
+ }
+}
